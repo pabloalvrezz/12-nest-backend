@@ -1,19 +1,25 @@
 import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
+
 import { Model } from 'mongoose';
 
 import * as bcryptjs from 'bcryptjs'
 
 import { CreateUserDto } from './dto/create-user.dto';
+import { JwtPayload } from './interfaces/jwt-payload';
+import { LoginDto } from './dto/login.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { User } from './entities/user.entity';
-import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
 
   constructor(
-    @InjectModel(User.name) private userModel: Model<User>
+    @InjectModel(User.name)
+    private userModel: Model<User>,
+
+    private jwtService: JwtService,
   ) { }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -64,7 +70,7 @@ export class AuthService {
 
     return {
       ...rest,
-      token: '123',
+      token: this.getJwtToken({ id: user.id })
     }
   }
 
@@ -82,5 +88,12 @@ export class AuthService {
 
   remove(id: number) {
     return `This action removes a #${id} auth`;
+  }
+
+  // metodo que usaremos para obtener el JWtoken de cada usuario
+  getJwtToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+
+    return token;
   }
 }
