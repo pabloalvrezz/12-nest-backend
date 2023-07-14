@@ -6,10 +6,9 @@ import { Model } from 'mongoose';
 
 import * as bcryptjs from 'bcryptjs'
 
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, UpdateAuthDto, LoginDto, RegisterUserDto } from './dto/index';
 import { JwtPayload } from './interfaces/jwt-payload';
-import { LoginDto } from './dto/login.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { LoginResponse } from './interfaces/login-response';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -22,6 +21,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) { }
 
+  // metodo que usaremos para crear un usuario
   async create(createUserDto: CreateUserDto): Promise<User> {
 
 
@@ -52,8 +52,19 @@ export class AuthService {
 
   }
 
+  // metodo que usaremos para que un usuario se pueda registrar
+  async register(registerUserDto: RegisterUserDto): Promise<LoginResponse> {
+
+    const user = await this.create(registerUserDto);
+
+    return {
+      user: user,
+      token: this.getJwtToken({ id: user._id }),
+    }
+  }
+
   // metodo que usaremos para intentar loggear al usuario
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto): Promise<LoginResponse> {
     // obtenemos la contraseña y el correo del usuario
     const { email, password } = loginDto;
 
@@ -69,23 +80,36 @@ export class AuthService {
     const { password: _, ...rest } = user.toJSON();
 
     return {
-      ...rest,
-      token: this.getJwtToken({ id: user.id })
+      user: rest,
+      token: this.getJwtToken({ id: user.id }),
     }
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  // metodo que usaremos para encontrar todos los usuarios creados
+
+  findAll(): Promise<User[]> {
+    return this.userModel.find();
   }
 
+  async findUserById(id: string) {
+    const user = await this.userModel.findById(id);
+    const { password, ...rest } = user.toJSON();
+
+    return rest;
+
+  }
+
+  // metodo que usaremos para buscar a un usuario por su id
   findOne(id: number) {
     return `This action returns a #${id} auth`;
   }
 
+  // metodo que usaremos para actualizar un usuario segun su Id
   update(id: number, updateAuthDto: UpdateAuthDto) {
     return `This action updates a #${id} auth`;
   }
 
+  // metodo que usaremos para eliminar el usuario
   remove(id: number) {
     return `This action removes a #${id} auth`;
   }
