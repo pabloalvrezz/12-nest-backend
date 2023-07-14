@@ -1,9 +1,8 @@
-import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema()
 export class User {
 
-    // obligamos a los usuarios a tener correo electronico y que sea unico
     @Prop({ unique: true, required: true })
     email: string;
 
@@ -11,14 +10,13 @@ export class User {
     name: string;
 
     @Prop({ minlength: 6, required: true })
-    password: string;
+    password?: string;
 
     @Prop({ default: true })
     isActive: boolean;
 
     @Prop({ type: [String], default: ['user'] })
     roles: string[];
-
 
 }
 
